@@ -43,11 +43,10 @@ async def process_content(content: str) -> dict:
 
     raw = data["choices"][0]["message"]["content"].strip()
 
-    # codex às vezes envolve em ```json ... ```
-    if raw.startswith("```"):
-        parts = raw.split("```")
-        raw = parts[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
+    # extrai o objeto JSON independente de qualquer wrapper markdown
+    start = raw.find('{')
+    end = raw.rfind('}') + 1
+    if start == -1 or end == 0:
+        raise ValueError(f"LLM não retornou JSON válido: {raw[:200]}")
 
-    return json.loads(raw.strip())
+    return json.loads(raw[start:end])

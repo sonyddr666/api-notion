@@ -1,15 +1,15 @@
 import os
 import httpx
 
-NOTION_TOKEN = os.getenv("NOTION_TOKEN")
 DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
 BASE_URL = "https://api.notion.com/v1"
 
-HEADERS = {
-    "Authorization": f"Bearer {NOTION_TOKEN}",
-    "Notion-Version": "2022-06-28",
-    "Content-Type": "application/json"
-}
+def _headers() -> dict:
+    return {
+        "Authorization": f"Bearer {os.getenv('NOTION_TOKEN')}",
+        "Notion-Version": "2022-06-28",
+        "Content-Type": "application/json"
+    }
 
 async def create_page(original: str, meta: dict) -> dict:
     """
@@ -69,8 +69,8 @@ async def create_page(original: str, meta: dict) -> dict:
             }
         ]
     }
-    async with httpx.AsyncClient() as c:
-        r = await c.post(f"{BASE_URL}/pages", headers=HEADERS, json=payload)
+    async with httpx.AsyncClient(timeout=30) as c:
+        r = await c.post(f"{BASE_URL}/pages", headers=_headers(), json=payload)
         r.raise_for_status()
         return r.json()
 
@@ -78,7 +78,7 @@ async def query_database(filters: dict = None) -> list:
     body = {"page_size": 20}
     if filters:
         body["filter"] = filters
-    async with httpx.AsyncClient() as c:
-        r = await c.post(f"{BASE_URL}/databases/{DATABASE_ID}/query", headers=HEADERS, json=body)
+    async with httpx.AsyncClient(timeout=30) as c:
+        r = await c.post(f"{BASE_URL}/databases/{DATABASE_ID}/query", headers=_headers(), json=body)
         r.raise_for_status()
         return r.json().get("results", [])

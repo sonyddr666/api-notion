@@ -1,13 +1,14 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()  # deve rodar antes dos imports locais que leem env vars no nível do módulo
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Any
-from dotenv import load_dotenv
+from typing import Any, Optional
 from .llm_processor import process_content
 from .notion_client import create_page, query_database
 
-load_dotenv()
 app = FastAPI(title="api-notion", version="1.0.0")
 
 app.add_middleware(
@@ -26,9 +27,9 @@ class SaveRequest(BaseModel):
     origin: str = "api"
 
 class QueryRequest(BaseModel):
-    type: str = None
-    language: str = None
-    tag: str = None
+    type: Optional[str] = None
+    language: Optional[str] = None
+    tag: Optional[str] = None
 
 def normalize_content(content: Any) -> str:
     """Converte qualquer tipo de entrada para string para processar."""
